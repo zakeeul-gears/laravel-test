@@ -1,34 +1,28 @@
-name: Code Standards Check
+name: Code Standard Check
 
 on:
   pull_request:
-    paths:
-      - 'app/**'
-      - 'config/**'
-      - 'database/**'
-      - 'public/**'
-      - 'resources/**'
-      - 'routes/**'
-      - 'tests/**'
+    branches:
+      - main
 
 jobs:
-  check-code-standards:
+  php_cs_fixer:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout Repository
         uses: actions/checkout@v2
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '7.4' # You can adjust the PHP version as needed
+          php-version: '7.4'
 
-      - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist
+      - name: Install Dependencies
+        run: composer install
 
       - name: Run PHP CS Fixer
-        run: php vendor/bin/php-cs-fixer fix --dry-run --stop-on-violation --using-cache=no
+        run: php vendor/bin/php-cs-fixer fix --dry-run --diff --verbose
 
-      - name: Check for changes
+      - name: Check for Changes
         run: git diff --exit-code
