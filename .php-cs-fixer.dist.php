@@ -11,8 +11,8 @@ $finder = PhpCsFixer\Finder::create()
         __DIR__.'/tests',
     ]);
 
-return PhpCsFixer\Config::create()
-    ->setRules([
+$config = new PhpCsFixer\Config();
+return $config->setRules([
         '@PSR2' => true,
         'array_syntax' => ['syntax' => 'short'],
         // Add more rules as needed
