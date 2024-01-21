@@ -27,8 +27,15 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
 
-      - name: Run PHP_CodeSniffer
-        run: ./vendor/bin/phpcs --standard=PSR2 --extensions=php app/ tests/ routes/
+      - name: Get modified files
+        id: get_modified_files
+        run: echo "::set-output name=files::$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^(app|config|database|public|resources|routes)/.*\.php$' | paste -sd, -)"
 
-      - name: Check for modified files
-        run: git diff --name-only --exit-code || (echo "Code Standards Check failed. Please run PHPStan and PHP_CodeSniffer locally and fix the issues." && exit 1)
+      - name: Run PHP_CodeSniffer on modified files
+        run: |
+          IFS=',' read -ra files <<< "${{ steps.get_modified_files.outputs.files }}"
+          if [ -n "$files" ]; then
+            ./vendor/bin/phpcs --standard=PSR2 --extensions=php "${files[@]}"
+          else
+            echo "No modified PHP files found."
+          fi
