@@ -1,28 +1,33 @@
-name: Code Standard Check
+name: Code Standards Check
 
 on:
   pull_request:
-    branches:
-      - main
+    paths:
+      - 'app/**'
+      - 'tests/**'
+      # Add more paths as needed
 
 jobs:
-  php_cs_fixer:
+  code_standards:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '7.4'
+          php-version: 7.2
 
-      - name: Install Dependencies
-        run: composer install
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest
 
-      - name: Run PHP CS Fixer
-        run: php vendor/bin/php-cs-fixer fix --dry-run --diff --verbose
+      - name: Run PHPStan
+        run: ./vendor/bin/phpstan analyze --level=7
 
-      - name: Check for Changes
-        run: git diff --exit-code
+      - name: Run PHP_CodeSniffer
+        run: ./vendor/bin/phpcs --standard=PSR2 --extensions=php app/ tests/
+
+      - name: Check for modified files
+        run: git diff --name-only --exit-code || (echo "Code Standards Check failed. Please run PHPStan and PHP_CodeSniffer locally and fix the issues." && exit 1)
