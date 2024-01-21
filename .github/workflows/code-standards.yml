@@ -10,15 +10,6 @@ on:
       - 'resources/**'
       - 'routes/**'
       # Add more paths as needed
-  push:
-    paths:
-      - 'app/**'
-      - 'config/**'
-      - 'database/**'
-      - 'public/**'
-      - 'resources/**'
-      - 'routes/**'
-      # Add more paths as needed
 
 jobs:
   code_standards:
@@ -40,8 +31,9 @@ jobs:
         id: changed-files
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "::set-output name=files::$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.php$')"
-          elif [ "${{ github.event_name }}" = "push" ]; then
+            base=$(curl -sSL https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.number }} | jq -r '.base.sha')
+            echo "::set-output name=files::$(git diff --name-only $base ${{ github.sha }} | grep '\.php$')"
+          else
             echo "::set-output name=files::$(git diff --name-only HEAD^..HEAD | grep '\.php$')"
           fi
 
