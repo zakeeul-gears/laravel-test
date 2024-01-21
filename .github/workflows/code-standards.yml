@@ -27,22 +27,5 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
 
-      - name: Get changed files
-        id: changed-files
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            base=$(curl -sSL https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.number }} | jq -r '.base.sha')
-            echo "::set-output name=files::$(git diff --name-only $base ${{ github.sha }} | grep '\.php$')"
-          else
-            echo "::set-output name=files::$(git diff --name-only HEAD^..HEAD | grep '\.php$')"
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Run PHP_CodeSniffer
-        run: |
-          if [ -n "${{ steps.changed-files.outputs.files }}" ]; then
-            ./vendor/bin/phpcs --standard=PSR2 --extensions=php ${{ steps.changed-files.outputs.files }}
-          else
-            echo "No PHP files changed. Skipping PHP_CodeSniffer."
-          fi
+        run: ./vendor/bin/phpcs --standard=PSR2 --extensions=php app/ routes/
