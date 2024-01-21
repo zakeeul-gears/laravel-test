@@ -30,7 +30,7 @@ jobs:
       - name: Get modified PHP files
         id: get_modified_files
         run: |
-          echo "::set-output name=files::$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^app/|^config/|^database/|^public/|^resources/|^routes/.*\.php$' | paste -sd, -)"
+          echo "::set-output name=files::$(git diff --name-only ${{ github.base_ref }} ${{ github.sha }} | grep -E '^app/|^config/|^database/|^public/|^resources/|^routes/.*\.php$' | paste -sd, -)"
 
       - name: Run PHP_CodeSniffer on modified files
         run: |
