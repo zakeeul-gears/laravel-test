@@ -10,6 +10,15 @@ on:
       - 'resources/**'
       - 'routes/**'
       # Add more paths as needed
+  push:
+    paths:
+      - 'app/**'
+      - 'config/**'
+      - 'database/**'
+      - 'public/**'
+      - 'resources/**'
+      - 'routes/**'
+      # Add more paths as needed
 
 jobs:
   code_standards:
@@ -29,7 +38,12 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        run: echo "::set-output name=files::$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.php$')"
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "::set-output name=files::$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.php$')"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            echo "::set-output name=files::$(git diff --name-only HEAD^..HEAD | grep '\.php$')"
+          fi
 
       - name: Run PHP_CodeSniffer
         run: |
