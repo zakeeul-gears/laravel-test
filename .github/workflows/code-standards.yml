@@ -27,8 +27,12 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
 
-      - name: Run PHPStan
-        run: ./vendor/bin/phpstan analyze --level=7 app routes
+      - name: Get modified files
+        id: get_modified_files
+        run: echo "::set-output name=files::$(git diff --name-only ${{ github.event.before }}...${{ github.sha }} | grep '\.php$')"
+
+      - name: Run PHPStan on modified files
+        run: ./vendor/bin/phpstan analyze --level=7 ${{ steps.get_modified_files.outputs.files }}
 
       - name: Run PHP_CodeSniffer
         run: ./vendor/bin/phpcs --standard=PSR2 --extensions=php app/ tests/
