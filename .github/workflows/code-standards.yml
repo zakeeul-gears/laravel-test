@@ -27,16 +27,14 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
 
-      - name: Get modified PHP files
-        id: get_modified_files
-        run: |
-          echo "::set-output name=files::$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^app/|^config/|^database/|^public/|^resources/|^routes/.*\.php$' | paste -sd, -)"
+      - name: Get changed files
+        id: changed-files
+        run: echo "::set-output name=files::$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.php$')"
 
-      - name: Run PHP_CodeSniffer on modified files
+      - name: Run PHP_CodeSniffer
         run: |
-          IFS=',' read -ra files <<< "${{ steps.get_modified_files.outputs.files }}"
-          if [ -n "$files" ]; then
-            ./vendor/bin/phpcs --standard=PSR2 --extensions=php "${files[@]}"
+          if [ -n "${{ steps.changed-files.outputs.files }}" ]; then
+            ./vendor/bin/phpcs --standard=PSR2 --extensions=php ${{ steps.changed-files.outputs.files }}
           else
-            echo "No modified PHP files found."
+            echo "No PHP files changed. Skipping PHP_CodeSniffer."
           fi
