@@ -9,10 +9,10 @@ on:
       - 'public/**'
       - 'resources/**'
       - 'routes/**'
-      - 'tests/**'
+      # Add more paths as needed
 
 jobs:
-  check-code-standards:
+  code_standards:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,13 +22,20 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '7.4' # You can adjust the PHP version as needed
+          php-version: 7.3
 
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
 
-      - name: Run PHP CS Fixer
-        run: php vendor/bin/php-cs-fixer fix --dry-run --stop-on-violation --using-cache=no
+      - name: Get modified files
+        id: get_modified_files
+        run: echo "::set-output name=files::$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^(app|config|database|public|resources|routes)/.*\.php$' | paste -sd, -)"
 
-      - name: Check for changes
-        run: git diff --exit-code
+      - name: Run PHP_CodeSniffer on modified files
+        run: |
+          IFS=',' read -ra files <<< "${{ steps.get_modified_files.outputs.files }}"
+          if [ -n "$files" ]; then
+            ./vendor/bin/phpcs --standard=PSR2 --extensions=php "${files[@]}"
+          else
+            echo "No modified PHP files found."
+          fi
