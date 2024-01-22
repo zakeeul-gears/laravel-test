@@ -17,7 +17,11 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v35
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -27,5 +31,5 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
 
-      - name: Run PHP_CodeSniffer
-        run: ./vendor/bin/phpcs --standard=PSR2 --extensions=php app/ routes/
+      - name: Run PHP_CodeSniffer on changed files
+        run: ./vendor/bin/phpcs --standard=PSR2 --extensions=php ${{ steps.changed-files.outputs.all_changed_files }}
